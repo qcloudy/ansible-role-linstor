@@ -1,0 +1,68 @@
+---
+- set_fact:
+    _p: "{{ os_packages[ansible_distribution|lower] }}"
+  tags:
+  - always
+
+- name: Uninstall binary packages
+  apt:
+    name: "{{ item }}"
+    state: absent
+    purge: yes
+  loop: "{{ _p['common'] + _p['controller'] + _p['satellite'] }}"
+  tags:
+  - never
+  - uninstall
+
+- tags: install
+  block:
+  - name: Add ppa repos
+    apt_repository:
+      repo: "{{ item }}"
+    loop: "{{ repositories.apt }}"
+
+  - name: Update APT package cache
+    apt:
+      update_cache: true
+
+  - name: Install os packages
+    apt:
+      name: "{{ item }}"
+    loop: "{{ _p['system'] + _p['common'] }}"
+
+  - name: Install controller
+    apt:
+      name: "{{ item }}"
+    loop: "{{ _p['controller'] }}"
+    when: "'linstor_controllers' in group_names"
+
+  - name: Install satellite
+    apt:
+      name: "{{ item }}"
+    loop: "{{ _p['satellite'] }}"
+    when: "'linstor_satellites' in group_names"
+
+  - vars:
+      _s: 'Status: inactive'
+    block:
+    - name: Check if firewall is running
+      shell: ufw status
+      register: firewall
+      failed_when: ( firewall.rc not in [ 0, 3, 4 ] or firewall.stdout == _s )
+      ignore_errors: yes
+
+    - name: Allow linstor ports
+      ufw:
+        insert: 1
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+        from_ip: "{{ drbd_replication_network }}"
+      loop:
+      - '3366'
+      - '3370'
+      - '3376'
+      - '7000:8000'
+      when:
+      - firewall.rc == 0
+      - firewall.stdout != _s
