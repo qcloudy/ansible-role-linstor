@@ -26,6 +26,8 @@
 
 - name: Create the linstor storage pool '{{ pool.name }}'
   shell: linstor storage-pool create {{ pool.type }} {{ ansible_nodename }} {{ pool.name }} {{ _vg_name }}/{{ pool.name }}
+  when: linstor_controller_primary
   register: storage_pool_create_result
   failed_when: ( storage_pool_create_result.rc not in [ 0 ] )
   ignore_errors: true
+  
