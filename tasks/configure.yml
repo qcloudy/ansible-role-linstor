@@ -64,7 +64,7 @@
     register: _ret
 
   - name: Create linstor node
-    shell: linstor node create {{ invnetory_hostname }} {{ ansible_all_ipv4_addresses | ipaddr(drbd_replication_network) | first }} --node-type {% if 'linstor_satellites' not in group_names %}Controller{% else %}Combined{% endif %}
+    shell: linstor node create {{ inventory_hostname }} {{ ansible_all_ipv4_addresses | ipaddr(drbd_replication_network) | first }} --node-type {% if 'linstor_satellites' not in group_names %}Controller{% else %}Combined{% endif %}
     register: linstor_create_result
     failed_when: ( linstor_create_result.rc not in [ 0 ] )
     ignore_errors: yes
