@@ -51,6 +51,8 @@
 
 - name: 'linstor | Check node'
   shell: linstor node list
+  when: 
+    - linstor_controller_primary
   register: _ret_nodes
 
 - name: 'linstor | Create linstor node'
