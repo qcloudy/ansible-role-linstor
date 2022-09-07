@@ -73,4 +73,6 @@
 
 - debug:
     msg: "{{ ret.stdout }}"
-  when: ret.rc == 0
+  when:
+    - linstor_controller_primary
+    - ret.rc == 0
