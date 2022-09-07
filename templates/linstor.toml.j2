@@ -2,30 +2,30 @@
 # For more options check documentation https://www.linbit.com/drbd-user-guide/linstor-guide-1_0-en/#s-linstor-external-database
 
 [db]
-{% if linstor_db_user | d('') | length %}
+{% if linstor_db_user is defined %}
   user = "{{ linstor_db_user }}"
 {% endif %}
-{% if linstor_db_password | d('') | length %}
+{% if linstor_db_password is defined %}
   password = "{{ linstor_db_password }}"
 {% endif %}
 
   connection_url = "{{ linstor_db_connection_url }}"
 
-{% if linstor_db_ca_certificate | d('') | length %}
+{% if linstor_db_ca_certificate is defined %}
   ## if you want to use TLS, only since LINSTOR 1.2.1
   ca_certificate = "{{ linstor_db_ca_certificate }}"
 {% endif %}
 
-{% if linstor_db_client_certificate | d('') | length %}
+{% if linstor_db_client_certificate is defined %}
   client_certificate = "{{ linstor_db_client_certificate }}"
 {% endif %}
 
-{% if linstor_db_key | d('') | length %}
+{% if linstor_db_key is defined %}
   ## if you want to use client TLS authentication too, only since LINSTOR 1.2.1
   client_key_pkcs8_pem = "{{ linstor_db_key }}"
 {% endif %}
 
-{% if linstor_db_key_password | d('') | length %}
+{% if linstor_db_key_password is defined %}
   ## set client_key_password if private key has a password
   client_key_password = "{{ linstor_db_key_password }}"
 {% endif %}
