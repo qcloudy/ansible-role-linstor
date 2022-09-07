@@ -10,4 +10,3 @@
   loop_control:
     loop_var: pool
   loop: "{{ linstor_pools }}"
-  when: linstor_sattelite

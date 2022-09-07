@@ -1,6 +1,4 @@
-
-
-
+---
 
 - set_fact:
     _vg_name: "{{ pool.volume_group | d(vg_name) }}"
@@ -10,23 +8,37 @@
   include_tasks: get-disks.yml
   loop: "{{ pool.physical_disks }}"
 
-- name: Create LVM volume group '{{ _vg_name }}'
+- name: 'storage-pool | Create LVM volume group "{{ _vg_name }}"'
   lvg:
     vg: "{{ _vg_name }}"
     pvs: "{{ _disks | join(',') }}"
-  when: _disks | d([]) | length
+  when:
+    - linstor_sattelite
+    - _disks | d([]) | length
 
-- name: Create LVM thin pool '{{ pool.name }}' on VG '{{ _vg_name }}'
+- name: 'storage-pool | Create LVM thin pool "{{ pool.name }}" on VG "{{ _vg_name }}"'
   lvol:
     vg: "{{ _vg_name }}"
     thinpool: "{{ pool.name }}"
     size: "{{ pool.size | d('100%FREE') }}"
     opts: -Zn
+  when:
+    - linstor_sattelite
   ignore_errors: true
 
-- name: Create the linstor storage pool '{{ pool.name }}'
+- name: 'storage-pool | Check storage-pools'
+  shell: linstor storage-pool list
+  when:
+    - linstor_controller
+    - linstor_controller_primary
+  register: _ret_storage_pools
+
+- name: 'storage-pool | Create the linstor storage pool "{{ pool.name }}"'
   shell: linstor storage-pool create {{ pool.type }} {{ ansible_nodename }} {{ pool.name }} {{ _vg_name }}/{{ pool.name }}
-  when: linstor_controller_primary
+  when:
+    - linstor_controller
+    - linstor_controller_primary
+    - pool.name not in _ret_storage_pools.stdout
   register: storage_pool_create_result
   failed_when: ( storage_pool_create_result.rc not in [ 0 ] )
   ignore_errors: true
