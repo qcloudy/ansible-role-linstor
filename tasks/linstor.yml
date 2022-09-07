@@ -49,10 +49,16 @@
   shell: /bin/bash -c 'linstor --curl node info | sed "s,-X,--connect-timeout 1 -sSX,"'
   register: _ret
 
+- name: 'linstor | Check node'
+  shell: linstor node list
+  register: _ret_nodes
+
 - name: 'linstor | Create linstor node'
   shell: linstor node create {{ hostvars[item]['inventory_hostname'] }} {{ hostvars[item]['ansible_host'] }} --node-type {% if not hostvars[item]['linstor_sattelite'] %}Controller{% else %}Combined{% endif %}
   loop: "{{ groups['linstor'] }}"
-  when: linstor_controller_primary
+  when: 
+    - linstor_controller_primary
+    - "{{ hostvars[item]['inventory_hostname'] }} not in _ret_nodes.stdout"
   register: linstor_create_result
   failed_when: ( linstor_create_result.rc not in [ 0 ] )
   ignore_errors: true
