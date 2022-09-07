@@ -7,6 +7,9 @@
   - name: Add ppa repos
     apt_repository:
       repo: "{{ item }}"
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ http_proxy }}"
     loop: "{{ repositories.apt }}"
 
   - name: Update APT package cache
