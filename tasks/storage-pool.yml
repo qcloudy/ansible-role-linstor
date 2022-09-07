@@ -1,47 +1,31 @@
-- tags: storage
-  when: pool.type == 'filethin'
-  block:
-  - name: Create storage pool directory
-    file:
-      path: "{{ pool.base_path | d(filethin_base_path) }}/{{ pool.name }}"
-      state: directory
-      mode: '0755'
-
-  - name: Create the linstor storage pool '{{ pool.name }}'
-    shell: linstor storage-pool create {{ pool.type }} {{ ansible_nodename }} {{ pool.name }} {{ pool.base_path | d(filethin_base_path) }}/{{ pool.name }}
-    register: storage_pool_create_result
-    failed_when: ( storage_pool_create_result.rc not in [ 0 ] )
-    ignore_errors: yes
 
 
-- tags: storage
-  when: pool.type == 'lvmthin'
-  ignore_errors: yes
-  block:
-  - set_fact:
-      _vg_name: "{{ pool.volume_group | d(vg_name) }}"
 
-  - vars:
-      _disks: []
-    include_tasks: get-disks.yml
-    loop: "{{ pool.physical_disks }}"
 
-  - name: Create LVM volume group '{{ _vg_name }}'
-    lvg:
-      vg: "{{ _vg_name }}"
-      pvs: "{{ _disks | join(',') }}"
-    when: _disks | d([]) | length
+- set_fact:
+    _vg_name: "{{ pool.volume_group | d(vg_name) }}"
 
-  - name: Create LVM thin pool '{{ pool.name }}' on VG '{{ _vg_name }}'
-    lvol:
-      vg: "{{ _vg_name }}"
-      thinpool: "{{ pool.name }}"
-      size: "{{ pool.size | d('100%FREE') }}"
-      opts: -Zn
-    ignore_errors: yes
+- vars:
+    _disks: []
+  include_tasks: get-disks.yml
+  loop: "{{ pool.physical_disks }}"
 
-  - name: Create the linstor storage pool '{{ pool.name }}'
-    shell: linstor storage-pool create {{ pool.type }} {{ ansible_nodename }} {{ pool.name }} {{ _vg_name }}/{{ pool.name }}
-    register: storage_pool_create_result
-    failed_when: ( storage_pool_create_result.rc not in [ 0 ] )
-    ignore_errors: yes
+- name: Create LVM volume group '{{ _vg_name }}'
+  lvg:
+    vg: "{{ _vg_name }}"
+    pvs: "{{ _disks | join(',') }}"
+  when: _disks | d([]) | length
+
+- name: Create LVM thin pool '{{ pool.name }}' on VG '{{ _vg_name }}'
+  lvol:
+    vg: "{{ _vg_name }}"
+    thinpool: "{{ pool.name }}"
+    size: "{{ pool.size | d('100%FREE') }}"
+    opts: -Zn
+  ignore_errors: true
+
+- name: Create the linstor storage pool '{{ pool.name }}'
+  shell: linstor storage-pool create {{ pool.type }} {{ ansible_nodename }} {{ pool.name }} {{ _vg_name }}/{{ pool.name }}
+  register: storage_pool_create_result
+  failed_when: ( storage_pool_create_result.rc not in [ 0 ] )
+  ignore_errors: true

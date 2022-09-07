@@ -3,6 +3,11 @@ repositories:
   - ppa:npalix/coccinelle
   - ppa:linbit/linbit-drbd9-stack
 
+linstor_controller: false
+linstor_controller_primary: false
+
+linstor_sattelite: true
+
 os_packages:
   ubuntu:
     ## System packages will not be uninstalled
@@ -24,4 +29,4 @@ os_packages:
 vg_name: linvg
 filethin_base_path: /var/lib/linstor
 etcd_group_name: etcd
-primary_controller_index: 0
+

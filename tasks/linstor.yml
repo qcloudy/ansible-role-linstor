@@ -1,0 +1,73 @@
+---
+
+- name: 'linstor | Create directory /etc/linstor'
+  file:
+    path: /etc/linstor
+    state: directory
+    mode: 0755
+
+- name: 'linstor | Generate linstor.toml'
+  template:
+    src: linstor.toml.j2
+    dest: /etc/linstor/linstor.toml
+
+- name: 'linstor | Generate linstor-client.conf'
+  template:
+    src: linstor-client.conf.j2
+    dest: /etc/linstor/linstor-client.conf
+
+- name: 'linstor | Stop all drbd resources'
+  shell:
+    executable: /bin/bash
+    cmd: |
+      ## No need to forcibly umount?!
+      #lsblk --pairs -p /dev/drbd* | grep -oP '(?<=MOUNTPOINT=")[^"]+' | xargs -n1 umount;
+      drbdadm down all
+  ignore_errors: true
+
+- name: 'linstor | Enable and start Linstor Controller'
+  systemd:
+    name: linstor-controller
+    daemon_reload: yes
+    state: "{% if linstor_controller_primary %}started{% else %}stopped{% endif %}"
+    enabled: "{% if linstor_controller_primary %}true{% else %}false{% endif %}"
+  when: linstor_controller
+
+- name: 'linstor | Enable and start Linstor Satellite'
+  systemd:
+    name: linstor-satellite
+    daemon_reload: yes
+    state: "{% if linstor_controller_primary %}started{% else %}stopped{% endif %}"
+    enabled: "{% if linstor_controller_primary %}true{% else %}false{% endif %}"
+  when: linstor_sattelite
+
+- name: 'linstor | Start all drbd resources'
+  shell: drbdadm up all
+  ignore_errors: true
+
+- name: 'linstor | Get linstor API for nodes'
+  shell: /bin/bash -c 'linstor --curl node info | sed "s,-X,--connect-timeout 1 -sSX,"'
+  register: _ret
+
+- name: 'linstor | Create linstor node'
+  shell: linstor node create {{ inventory_hostname }} {{ ansible_host }} --node-type {% if 'linstor_satellites' not in group_names %}Controller{% else %}Combined{% endif %}
+  register: linstor_create_result
+  failed_when: ( linstor_create_result.rc not in [ 0 ] )
+  ignore_errors: true
+
+- name: 'linstor | Wait for Linstor nodes to become ready'
+  shell: |
+      linstor node reconnect {{ inventory_hostname }} >/dev/null 2>&1
+      {{ _ret.stdout }} || echo '[{"connection_status":"ERROR"}]'
+  register: _ret
+  retries: "{{ operation_retries | default(10) }}"
+  delay: "{{ operation_delay | default(5) }}"
+  until: _ret.stdout | from_json | rejectattr('connection_status', 'eq', 'ONLINE') | list | length == 0
+
+- name: 'linstor | List cluster nodes'
+  shell: linstor node list -p
+  register: ret
+
+- debug:
+    msg: "{{ ret.stdout }}"
+  when: ret.rc == 0

@@ -1,0 +1,32 @@
+---
+
+- set_fact:
+    _p: "{{ os_packages[ansible_distribution | lower] }}"
+
+- name: 'packages | Add ppa repos'
+  apt_repository:
+    repo: "{{ item }}"
+    update_cache: true
+  loop: "{{ repositories.apt }}"
+  when: ansible_distribution == "Ubuntu"
+
+# - name: Update APT package cache
+#   apt:
+#     update_cache: true
+
+- name: 'packages | Install os packages'
+  package:
+    name: "{{ item }}"
+  loop: "{{ _p['system'] + _p['common'] }}"
+
+- name: 'packages | Install controller'
+  package:
+    name: "{{ item }}"
+  loop: "{{ _p['controller'] }}"
+  when: linstor_controller
+
+- name: 'packages | Install satellite'
+  package:
+    name: "{{ item }}"
+  loop: "{{ _p['satellite'] }}"
+  when: linstor_sattelite

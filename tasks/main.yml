@@ -1,13 +1,13 @@
-## Software installation
-- include_tasks: "install-{{ ansible_distribution|lower }}.yml"
+---
 
-## Configuration
+- include_tasks: packages.yml
+
 - include_tasks: configure.yml
 
-## Storage pools
+- include_tasks: linstor.yml
+
 - include_tasks: storage-pool.yml
   loop_control:
     loop_var: pool
   loop: "{{ linstor_pools }}"
-  when:
-  - "'linstor_satellites' in group_names"
+  when: linstor_sattelite

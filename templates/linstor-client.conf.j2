@@ -1,6 +1,6 @@
 [global]
-{% if linstor_controllers | d('') != '' %}
+{% if linstor_controllers is defined %}
 controllers={{ linstor_controllers }}
 {% else %}
-controllers={% for node in groups['linstor_controllers'] %}{{ hostvars[node]['ansible_all_ipv4_addresses']| ipaddr(drbd_replication_network) | first }}{% if not loop.last %},{% endif %}{% endfor %}
+controllers={% for node in groups['linstor'] %}{% if node['linstor_controller'] %}{{ node['ansible_host'] }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}
 {% endif %}
