@@ -6,6 +6,10 @@
     - "'linstor_controllers' in group_names"
     - etcd_env_file | d('') | length
 
+  - name: Install py-netaddr
+    command: apk add --update py-netaddr
+    delegate_to: 127.0.0.1
+
   - name: Create directory /etc/linstor
     file:
       path: /etc/linstor
