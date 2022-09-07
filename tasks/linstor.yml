@@ -50,7 +50,9 @@
   register: _ret
 
 - name: 'linstor | Create linstor node'
-  shell: linstor node create {{ inventory_hostname }} {{ ansible_host }} --node-type {% if 'linstor_satellites' not in group_names %}Controller{% else %}Combined{% endif %}
+  shell: linstor node create {{ hostvars[item]['inventory_hostname'] }} {{ hostvars[item]['ansible_host'] }} --node-type {% if not hostvars[item]['linstor_sattelite'] %}Controller{% else %}Combined{% endif %}
+  loop: "{{ groups['linstor'] }}"
+  when: linstor_controller_primary
   register: linstor_create_result
   failed_when: ( linstor_create_result.rc not in [ 0 ] )
   ignore_errors: true
