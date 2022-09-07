@@ -1,18 +1,6 @@
 ---
 - set_fact:
     _p: "{{ os_packages[ansible_distribution|lower] }}"
-  tags:
-  - always
-
-- name: Uninstall binary packages
-  apt:
-    name: "{{ item }}"
-    state: absent
-    purge: yes
-  loop: "{{ _p['common'] + _p['controller'] + _p['satellite'] }}"
-  tags:
-  - never
-  - uninstall
 
 - tags: install
   block:
