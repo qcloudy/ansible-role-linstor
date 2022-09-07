@@ -60,7 +60,7 @@
   loop: "{{ groups['linstor'] }}"
   when: 
     - linstor_controller_primary
-    - hostvars[item]['inventory_hostname'] not in _ret_nodes.stdout"
+    - hostvars[item]['inventory_hostname'] not in _ret_nodes.stdout
   register: linstor_create_result
   failed_when: ( linstor_create_result.rc not in [ 0 ] )
   ignore_errors: true
