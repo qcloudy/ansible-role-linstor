@@ -57,14 +57,14 @@
   failed_when: ( linstor_create_result.rc not in [ 0 ] )
   ignore_errors: true
 
-- name: 'linstor | Wait for Linstor nodes to become ready'
-  shell: |
-      linstor node reconnect {{ inventory_hostname }} >/dev/null 2>&1
-      {{ _ret.stdout }} || echo '[{"connection_status":"ERROR"}]'
-  register: _ret
-  retries: "{{ operation_retries | default(10) }}"
-  delay: "{{ operation_delay | default(5) }}"
-  until: _ret.stdout | from_json | rejectattr('connection_status', 'eq', 'ONLINE') | list | length == 0
+# - name: 'linstor | Wait for Linstor nodes to become ready'
+#   shell: |
+#       linstor node reconnect {{ inventory_hostname }} >/dev/null 2>&1
+#       {{ _ret.stdout }} || echo '[{"connection_status":"ERROR"}]'
+#   register: _ret
+#   retries: "{{ operation_retries | default(10) }}"
+#   delay: "{{ operation_delay | default(5) }}"
+#   until: _ret.stdout | from_json | rejectattr('connection_status', 'eq', 'ONLINE') | list | length == 0
 
 - name: 'linstor | List cluster nodes'
   shell: linstor node list -p
