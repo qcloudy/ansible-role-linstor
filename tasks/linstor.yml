@@ -37,8 +37,8 @@
   systemd:
     name: linstor-satellite
     daemon_reload: yes
-    state: "{% if linstor_controller_primary %}started{% else %}stopped{% endif %}"
-    enabled: "{% if linstor_controller_primary %}true{% else %}false{% endif %}"
+    state: started
+    enabled: true
   when: linstor_sattelite
 
 - name: 'linstor | Start all drbd resources'
