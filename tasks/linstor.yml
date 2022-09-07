@@ -68,6 +68,7 @@
 
 - name: 'linstor | List cluster nodes'
   shell: linstor node list -p
+  when: linstor_controller_primary
   register: ret
 
 - debug:
