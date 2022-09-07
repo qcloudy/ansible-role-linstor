@@ -1,40 +1,8 @@
-##################################################################
-## Destruction, use with care! will destroy data and make you cry
-##################################################################
-- include_tasks: destroy.yml
-  tags:
-  - never
-  - destroy
-
-- set_fact:
-    _end: true
-  tags:
-  - never
-  - destroy
-
-- meta: end_play
-  when: _end | d(false)
-
-
-- name: Install ansible requirements
-  pip:
-    executable: pip3
-    extra_args: -U
-    name: "{{ item }}"
-  loop: "{{ lookup('file', 'requirements.txt').splitlines() }}"
-
-
 ## Software installation
 - include_tasks: "install-{{ ansible_distribution|lower }}.yml"
-  tags:
-  - install
-  - uninstall
-
 
 ## Configuration
 - include_tasks: configure.yml
-  tags: configure
-
 
 ## Storage pools
 - include_tasks: storage-pool.yml
@@ -43,4 +11,3 @@
   loop: "{{ linstor_pools }}"
   when:
   - "'linstor_satellites' in group_names"
-  tags: storage
