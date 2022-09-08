@@ -39,7 +39,7 @@
   when:
     - linstor_controller
     - linstor_controller_primary
-    - pool.name not in _ret_storage_pools.stdout
+    # - pool.name not in _ret_storage_pools.stdout
   register: storage_pool_create_result
   failed_when: ( storage_pool_create_result.rc not in [ 0 ] )
   ignore_errors: true
