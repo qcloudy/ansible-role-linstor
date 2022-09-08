@@ -34,7 +34,8 @@
   register: _ret_storage_pools
 
 - name: 'storage-pool | Create the linstor storage pool "{{ pool.name }}"'
-  shell: linstor storage-pool create {{ pool.type }} {{ ansible_nodename }} {{ pool.name }} {{ _vg_name }}/{{ pool.name }}
+  shell: linstor storage-pool create {{ pool.type }} {{ hostvars[item]['inventory_hostname'] }} {{ pool.name }} {{ _vg_name }}/{{ pool.name }}
+  loop: "{{ groups['linstor'] }}"
   when:
     - linstor_controller
     - linstor_controller_primary
